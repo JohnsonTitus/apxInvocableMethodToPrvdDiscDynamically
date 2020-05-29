@@ -1,0 +1,39 @@
+global class Enhance_GetAccountDiscount {
+    
+    global class DataContainer {
+    //to pass the accountId as input to pass whilst calling Apex
+    @InvocableVariable
+    public string accountId; 
+    
+    //The List<Recommendation> variable will be automatically set with the recommendations flowing into the Enhance element. 
+    @InvocableVariable
+    public List<Recommendation> recommendations;
+}
+    @InvocableMethod(label='Enhance with Discounts Based on Age' description='Returns an enhanced set of recommendations with appropriate discounts')
+    global static List<List<Recommendation>> getDiscounts(List<DataContainer> inputData){
+        
+        List<Recommendation> recommendations = inputData[0].recommendations; 
+        List<List<Recommendation>> outputs = new List<List<Recommendation>>();       
+        Account[] accounts = [SELECT Name, Description,CreatedDate, id FROM Account WHERE id = :inputData[0].accountId];
+           Double ageAccountMonths = accounts[0].CreatedDate.date().monthsBetween(date.today()); 
+        Double ageAccount = ageAccountMonths/12;       
+        List<Recommendation> returnedRecommendations = new List<Recommendation>(); 
+        
+        for (Recommendation r : recommendations){
+            if(ageAccount > 1){
+                r.Description = r.Description + ' with a 5% discount';
+            }
+            else if (ageAccount > 2){
+                r.Description = r.Description + ' with a 10% discount';
+            }
+            else if (ageAccount > 5){
+                r.Description = r.Description + ' with a 20% discount';
+            }
+            returnedRecommendations.add(r);
+        }
+        outputs.add(returnedRecommendations);                 
+        return outputs;
+        
+    }
+
+}
